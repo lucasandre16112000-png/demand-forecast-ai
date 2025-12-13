@@ -4,31 +4,81 @@ import NotFound from "@/pages/NotFound";
 import { Route, Switch } from "wouter";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
-import Home from "./pages/Home";
+import DashboardLayout from "./components/DashboardLayout";
+import Dashboard from "./pages/Dashboard";
+import Products from "./pages/Products";
+import DataUpload from "./pages/DataUpload";
+import Forecasts from "./pages/Forecasts";
+import Alerts from "./pages/Alerts";
+import { LayoutDashboard, Package, Upload, TrendingUp, Bell } from "lucide-react";
+
+const navigationItems = [
+  {
+    title: "Dashboard",
+    href: "/",
+    icon: LayoutDashboard,
+  },
+  {
+    title: "Produtos",
+    href: "/products",
+    icon: Package,
+  },
+  {
+    title: "Upload de Dados",
+    href: "/upload",
+    icon: Upload,
+  },
+  {
+    title: "Previsões",
+    href: "/forecasts",
+    icon: TrendingUp,
+  },
+  {
+    title: "Alertas",
+    href: "/alerts",
+    icon: Bell,
+  },
+];
 
 function Router() {
-  // make sure to consider if you need authentication for certain routes
   return (
     <Switch>
-      <Route path={"/"} component={Home} />
+      <Route path={"/"}>
+        <DashboardLayout navigationItems={navigationItems}>
+          <Dashboard />
+        </DashboardLayout>
+      </Route>
+      <Route path={"/products"}>
+        <DashboardLayout navigationItems={navigationItems}>
+          <Products />
+        </DashboardLayout>
+      </Route>
+      <Route path={"/upload"}>
+        <DashboardLayout navigationItems={navigationItems}>
+          <DataUpload />
+        </DashboardLayout>
+      </Route>
+      <Route path={"/forecasts"}>
+        <DashboardLayout navigationItems={navigationItems}>
+          <Forecasts />
+        </DashboardLayout>
+      </Route>
+      <Route path={"/alerts"}>
+        <DashboardLayout navigationItems={navigationItems}>
+          <Alerts />
+        </DashboardLayout>
+      </Route>
       <Route path={"/404"} component={NotFound} />
-      {/* Final fallback route */}
       <Route component={NotFound} />
     </Switch>
   );
 }
 
-// NOTE: About Theme
-// - First choose a default theme according to your design style (dark or light bg), than change color palette in index.css
-//   to keep consistent foreground/background color across components
-// - If you want to make theme switchable, pass `switchable` ThemeProvider and use `useTheme` hook
-
 function App() {
   return (
     <ErrorBoundary>
       <ThemeProvider
-        defaultTheme="light"
-        // switchable
+        defaultTheme="dark"
       >
         <TooltipProvider>
           <Toaster />

@@ -1,6 +1,17 @@
-import { eq } from "drizzle-orm";
+import { eq, desc } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { InsertUser, users } from "../drizzle/schema";
+import { 
+  InsertUser, 
+  users, 
+  products, 
+  InsertProduct,
+  salesHistory,
+  InsertSalesHistory,
+  forecasts,
+  InsertForecast,
+  alerts,
+  InsertAlert
+} from "../drizzle/schema";
 import { ENV } from './_core/env';
 
 let _db: ReturnType<typeof drizzle> | null = null;
@@ -89,4 +100,141 @@ export async function getUserByOpenId(openId: string) {
   return result.length > 0 ? result[0] : undefined;
 }
 
-// TODO: add feature queries here as your schema grows.
+/**
+ * Products queries
+ */
+export async function createProduct(userId: number, product: Omit<InsertProduct, "userId">) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  const result = await db.insert(products).values({ ...product, userId });
+  return result;
+}
+
+export async function getProductsByUserId(userId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  
+  return await db.select().from(products).where(eq(products.userId, userId)).orderBy(desc(products.createdAt));
+}
+
+export async function getProductById(productId: number, userId: number) {
+  const db = await getDb();
+  if (!db) return null;
+  
+  const result = await db.select().from(products)
+    .where(eq(products.id, productId))
+    .limit(1);
+  
+  return result.length > 0 && result[0].userId === userId ? result[0] : null;
+}
+
+export async function updateProduct(productId: number, userId: number, updates: Partial<InsertProduct>) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  await db.update(products)
+    .set(updates)
+    .where(eq(products.id, productId));
+}
+
+export async function deleteProduct(productId: number, userId: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  await db.delete(products).where(eq(products.id, productId));
+}
+
+/**
+ * Sales history queries
+ */
+export async function createSalesHistory(userId: number, sales: Omit<InsertSalesHistory, "userId">) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  const result = await db.insert(salesHistory).values({ ...sales, userId });
+  return result;
+}
+
+export async function getSalesHistoryByProductId(productId: number, userId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  
+  return await db.select().from(salesHistory)
+    .where(eq(salesHistory.productId, productId))
+    .orderBy(desc(salesHistory.saleDate));
+}
+
+export async function getSalesHistoryByUserId(userId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  
+  return await db.select().from(salesHistory)
+    .where(eq(salesHistory.userId, userId))
+    .orderBy(desc(salesHistory.saleDate));
+}
+
+/**
+ * Forecasts queries
+ */
+export async function createForecast(userId: number, forecast: Omit<InsertForecast, "userId">) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  const result = await db.insert(forecasts).values({ ...forecast, userId });
+  return result;
+}
+
+export async function getForecastsByProductId(productId: number, userId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  
+  return await db.select().from(forecasts)
+    .where(eq(forecasts.productId, productId))
+    .orderBy(desc(forecasts.forecastDate));
+}
+
+export async function getForecastsByUserId(userId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  
+  return await db.select().from(forecasts)
+    .where(eq(forecasts.userId, userId))
+    .orderBy(desc(forecasts.forecastDate));
+}
+
+/**
+ * Alerts queries
+ */
+export async function createAlert(userId: number, alert: Omit<InsertAlert, "userId">) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  const result = await db.insert(alerts).values({ ...alert, userId });
+  return result;
+}
+
+export async function getAlertsByUserId(userId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  
+  return await db.select().from(alerts)
+    .where(eq(alerts.userId, userId))
+    .orderBy(desc(alerts.createdAt));
+}
+
+export async function markAlertAsRead(alertId: number, userId: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  await db.update(alerts)
+    .set({ isRead: 1 })
+    .where(eq(alerts.id, alertId));
+}
+
+export async function deleteAlert(alertId: number, userId: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  await db.delete(alerts).where(eq(alerts.id, alertId));
+}
